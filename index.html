@@ -1,214 +1,80 @@
-<!DOCTYPE html>
+
+<!doctype html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Progreso académico</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>
-:root{--c1:#1f476f; --c2:#8cb9c4; --c3:#eae8e3;}
-*{box-sizing:border-box}
-body{
-  margin:0; padding:16px; background:var(--c3); color:#222; 
-  font-family: "Poppins", Arial, sans-serif;
-}
-.container{max-width:960px; margin:0 auto; text-align:center;}
-h1{margin:12px 0 4px; color:var(--c1); font-weight:700;}
-.sub{color:#333; margin:0 0 16px; font-size:1.05rem;}
-.card{background:#fff; border:1px solid #e5e5e5; border-radius:16px; padding:16px; margin-bottom:10px; text-align:left;}
-.row{display:flex; align-items:center; gap:12px}
-.search{width:100%; padding:12px; border:1px solid rgba(140,185,196,.5); border-radius:14px; outline:none; margin-bottom:16px}
-.subject{margin-bottom:10px}
-.subject .top{display:flex; align-items:center; gap:12px}
-.subject .name{font-weight:500; color:#111}
-.subject .meta{font-size:.85rem; color:#666; margin-top:4px;}
-.subject .grade input{
-  width:60px; 
-  padding:6px 8px;
-  border:1px solid #d0d0d0;
-  border-radius:16px;
-  text-align:right;
-  margin-left:auto;
-}
-.details{border-top:1px solid #eee; margin-top:10px; padding-top:10px}
-.hidden{display:none}
-.banner{margin-top:10px; background:var(--c3); border:1px solid rgba(140,185,196,.5); border-radius:12px; padding:10px; text-align:center;}
-.progress{height:12px; width:100%; background:#e6e6e6; border-radius:999px; overflow:hidden; margin-top:8px;}
-.progress > .bar{height:100%; background:var(--c2); width:0%}
-.btn{background:var(--c1); color:#fff; border:none; padding:10px 14px; border-radius:12px; cursor:pointer}
-.btn:disabled{opacity:.5; cursor:not-allowed}
-.actions{display:flex; gap:12px; margin-top:12px; justify-content:center;}
-a.link{display:block; text-align:center; text-decoration:none; padding:10px 14px; border-radius:12px;}
-.btn-ghost{background:#fff; color:#111; border:1px solid #e5e5e5;}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Profesorado de Química • Correlatividades</title>
+  <link rel="stylesheet" href="styles.css?v=3" />
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#24496e">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 </head>
 <body>
-<div class="container">
-<h1>Seguimiento académico</h1>
-<p class="sub">Profesorado de Biología</p>
+  <header class="app-header">
+    <h1>Profesorado de Química</h1>
+    <p class="subtitle">Correlatividades y avance de materias</p>
+  </header>
 
-<input id="search" class="search" placeholder="Buscar materia…" />
-<div id="list"></div>
-
-<div style="margin-top:16px">
-  <button id="prev" class="btn">Anterior</button>
-  <button id="next" class="btn">Siguiente</button>
-</div>
-
-<div class="card mt-6">
-  <div>Promedio: <span id="avg">-</span></div>
-  <div>Aprobadas: <span id="approvedCount">0</span> / <span id="totalCount">0</span></div>
-  <div class="progress"><div id="bar" class="bar"></div></div>
-  <div id="percent">Progreso: 0%</div>
-  <div id="listing" style="margin-top:8px; font-weight:600; color:var(--c1)">Listado de emergencia</div>
-</div>
-
-<!-- Banner único al final -->
-<div class="card mt-4" style="text-align:center">
-  <div style="margin-bottom:6px">Plataforma desarrollada por @cosasdelisfd41</div>
-  <a class="link btn" href="https://cafecito.app/cosasdel41" target="_blank">☕ Cafecito</a>
-</div>
-</div>
-
-<script>
-const SUBJECTS = [
-{id: 'PED', name: 'Pedagogía', year: '1°', unlocks: ["Didáctica y Curriculum", "Pensamiento Político Pedagógico Latinoamericano"]},
-{id: 'EDUCTRANS', name: 'Educacion y Transformaciones Sociales Contemporáneas', year: '1°', unlocks: ["Derechos, Interculturalidad y Ciudadanía"]},
-{id: 'ES', name: 'ESI', year: '1°', unlocks: ["Trayectorias Educativas de Jóvenes y Adultos", "Biología Humana y Salud", "Historia y Epistemología de la Biología"]},
-{id: 'CDE', name: 'Cultura Digital y Educación', year: '1°', unlocks: ["Trayectorias Educativas de Jóvenes y Adultos"]},
-{id: 'MCN', name: 'Matemática y Ciencias Naturales', year: '1°', unlocks: []},
-{id: 'IFA', name: 'Introducción a la Física y Elementos de Astronomía', year: '1°', unlocks: ["Fisicoquímica de Sistemas Biológicos"]},
-{id: 'QE', name: 'Química y Actividad Experimental', year: '1°', unlocks: ["Fisicoquímica de Sistemas Biológicos", "Ciencias de la Tierra"]},
-{id: 'ISB', name: 'Introducción a los Sistemas Biológicos', year: '1°', unlocks: ["Introducción a la Biología Celular y Molecular", "Fundamentos de Evolució y Biodiversidad", "Educación Ambiental"]},
-{id: 'PD1', name: 'Práctica Docente I', year: '1°', unlocks: []},
-{id: 'DYC', name: 'Didáctica y Currículum', year: '2°', unlocks: []},
-{id: 'PPPL', name: 'Pensamiento Político Pedagógico Latinoamericano', year: '2°', unlocks: ["Política Educativa Argentina"]},
-{id: 'PA', name: 'Psicología del Aprendizaje', year: '2°', unlocks: []},
-{id: 'AIE', name: 'Análisis de las Instituciones Educativas', year: '2°', unlocks: []},
-{id: 'FSB', name: 'Fisicoquímica de Sistemas Biológicos', year: '2°', unlocks: ["Química Biológica", "Biología Humana y Salud", "Biología Celular", "Biología de Microorganismos y Hongos"]},
-{id: 'IBCM', name: 'Introducción a la Biología Celular y Molecular', year: '2°', unlocks: ["Química Biológica", "Biología Humana y Salud", "Biología Celular", "Biología de Microorganismos y Hongos"]},
-{id: 'FEB', name: 'Fundamentos de Evolución y Biodiversidad', year: '2°', unlocks: ["Biología de Plantas y Algas", "Biología de los Animales", "Evolución", "Genética", "Ecología"]},
-{id: 'DCN', name: 'Didáctica de las Ciencias Naturales', year: '2°', unlocks: ["Didáctica de la Biología"]},
-{id: 'CDT', name: 'Ciencias de la Tierra', year: '2°', unlocks: ["Evolución", "Problemáticas Socio-Ambientales"]},
-{id: 'EA', name: 'Educación Ambiental', year: '2°', unlocks: []},
-{id: 'PD2', name: 'Práctica Docente II', year: '2°', unlocks: []},
-{id: 'PEA', name: 'Política Educativa Argentina', year: '3°', unlocks: []},
-{id: 'PFE', name: 'Problemas Filosóficos de la Educación', year: '3°', unlocks: ["Reflexión Filosófico-Política de la Práctica Docente"]},
-{id: 'TEJA', name: 'Trayectorias Educativas de Jóvenes y Adultos', year: '3°', unlocks: []},
-{id: 'QB', name: 'Química Biológica', year: '3°', unlocks: ["Genética"]},
-{id: 'BPA', name: 'Biología de Plantas y Algas', year: '3°', unlocks: []},
-{id: 'BDA', name: 'Biología de los Animales', year: '3°', unlocks: []},
-{id: 'BHS', name: 'Biología Humana y Salud', year: '3°', unlocks: ["Educación y Salud"]},
-{id: 'DDB', name: 'Didáctica de la Biología', year: '3°', unlocks: []},
-{id: 'BC', name: 'Biología Celular', year: '3°', unlocks: ["Evolución", "Genética"]},
-{id: 'BM', name: 'Biología de Microorganismos y Hongos', year: '3°', unlocks: []},
-{id: 'PD3', name: 'Práctica Docente III', year: '3°', unlocks: []},
-{id: 'RFP', name: 'Reflexión Filosófico-Política de la Práctica Docente', year: '4°', unlocks: []},
-{id: 'DIC', name: 'Derechos, Interculturalidad y Ciudadanía', year: '4°', unlocks: []},
-{id: 'EOI', name: 'Espacio de Opción Institucional (1° Cuatrimestre)', year: '4°', unlocks: []},
-{id: 'EOI2', name: 'Espacio de Opción Institucional (2° Cuatrimestre)', year: '4°', unlocks: []},
-{id: 'HEB', name: 'Historia y Epistemología de la Biología', year: '4°', unlocks: []},
-{id: 'EVOL', name: 'Evolución', year: '4°', unlocks: []},
-{id: 'GENE', name: 'Genética', year: '4°', unlocks: []},
-{id: 'ECO', name: 'Ecología', year: '4°', unlocks: []},
-{id: 'DBIE', name: 'Didáctica de la Biología e Investigación Educativa', year: '4°', unlocks: []},
-{id: 'EYS', name: 'Educación y Salud', year: '4°', unlocks: []},
-{id: 'PSA', name: 'Problemas Socio-Ambientales', year: '4°', unlocks: []},
-{id: 'PD4', name: 'Práctica Docente IV', year: '4°', unlocks: []},
-{id: 'UCP', name: 'Unidad Curricular Optativa', year: '4°', unlocks: []},
-];
-
-const STORAGE_KEY = 'pa_state_v1';
-let state = JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');
-
-const listEl = document.getElementById('list');
-const searchEl = document.getElementById('search');
-const prevBtn = document.getElementById('prev');
-const nextBtn = document.getElementById('next');
-const avgEl = document.getElementById('avg');
-const approvedCountEl = document.getElementById('approvedCount');
-const totalCountEl = document.getElementById('totalCount');
-const barEl = document.getElementById('bar');
-const percentEl = document.getElementById('percent');
-const listingEl = document.getElementById('listing');
-
-const PAGE_SIZE = 10;
-let currentPage = 1;
-let query = '';
-
-function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
-function applyFilter(){const q=query.trim().toLowerCase(); return q ? SUBJECTS.filter(s=>s.name.toLowerCase().includes(q)) : SUBJECTS.slice();}
-function listLabel(percent){if(percent===100) return 'Listado 108 A'; if(percent>=75) return 'Listado 108 B Item 4'; if(percent>=50) return 'Listado 108 B Item 5'; return 'Listado de emergencia';}
-
-function renderList(){
-  const filtered=applyFilter();
-  const totalPages=Math.max(1, Math.ceil(filtered.length/PAGE_SIZE));
-  if(currentPage>totalPages) currentPage=totalPages;
-  const start=(currentPage-1)*PAGE_SIZE;
-  const pageItems=filtered.slice(start,start+PAGE_SIZE);
-
-  listEl.innerHTML=pageItems.map(s=>{
-    const st=state[s.id]||{approved:false,grade:''};
-    const bannerText = st.approved && s.unlocks.length ? `¡Felicidades! Podés cursar ${s.unlocks.join(', ')}${s.unlockText?' ('+s.unlockText+')':''}` : '';
-    const detailsClass = st.approved ? '' : 'hidden';
-    return `<div class="subject card" data-id="${s.id}">
-      <div class="top">
-        <input type="checkbox" class="js-approved" ${st.approved?'checked':''}/>
-        <span class="name">${s.name}</span>
-        <input type="number" min="0" max="10" class="js-grade" value="${st.grade||''}"/>
+  <main class="container">
+    <!-- Progreso -->
+    <section class="panel" id="progreso-panel">
+      <h2>Progreso</h2>
+      <div id="progreso-wrap">
+        <div class="actions">
+          <button id="exportar-estado" class="btn">Exportar estado</button>
+          <button id="importar-estado" class="btn">Importar estado</button>
+          <input id="import-file" type="file" accept="application/json" style="display:none" />
+        </div>
+        <div id="progreso-topline"></div>
+        <div class="progress"><div class="progress-fill" id="progress-fill"></div></div>
+        <div id="progreso-nota" class="meta"></div>
       </div>
-      <div class="meta">Año: ${s.year}</div>
-      <div class="details ${detailsClass}">
-        ${bannerText?`<div class="banner">${bannerText}</div>`:''}
+    </section>
+
+    <!-- Buscador -->
+    <section class="panel" id="buscador-panel">
+      <h2>Buscador</h2>
+      <input id="search" type="search" placeholder="Buscar por nombre de materia…" autocomplete="off" />
+      <ul id="search-results"></ul>
+    </section>
+
+    <!-- Checklist (collapsed by default) -->
+    <section class="panel collapsed" id="checklist-panel">
+      <h2><button class="collapse-toggle" data-target="checklist-panel">Checklist ▸</button></h2>
+      <div class="collapsible-body" data-body="checklist-panel">
+        <div id="checklist"></div>
       </div>
-    </div>`;
-  }).join('');
+    </section>
 
-  prevBtn.disabled=currentPage===1;
-  nextBtn.disabled=currentPage===totalPages;
-  totalCountEl.textContent=SUBJECTS.length;
-}
+    <!-- Matriz (collapsed by default) -->
+    <section class="panel collapsed" id="matriz-panel">
+      <h2><button class="collapse-toggle" data-target="matriz-panel">Matriz de correlatividades ▸</button></h2>
+      <div class="collapsible-body" data-body="matriz-panel">
+        <div id="matriz" class="matriz-grid"></div>
+        <div class="legend">
+          <span class="badge aprobada">APROBADA</span>
+          <span class="badge habilitada">HABILITADA</span>
+          <span class="badge bloqueada">BLOQUEADA</span>
+        </div>
+      </div>
+    </section>
+  </main>
 
-function updateProgress(){
-  const approvedCount=SUBJECTS.reduce((acc,s)=>acc+(state[s.id]?.approved?1:0),0);
-  const percent=Math.round((approvedCount/SUBJECTS.length)*100);
-  const grades=SUBJECTS.map(s=>state[s.id]?.grade).filter(g=>g!=='' && g!==undefined);
-  const avg=grades.length?(grades.reduce((a,b)=>Number(a)+Number(b),0)/grades.length).toFixed(2):'-';
-  approvedCountEl.textContent=approvedCount;
-  barEl.style.width=percent+'%';
-  percentEl.textContent='Progreso: '+percent+'%';
-  listingEl.textContent=listLabel(percent);
-  avgEl.textContent=avg;
-}
+  <!-- Modal -->
+  <dialog id="modal">
+    <div class="modal-content">
+      <h3 id="modal-title">Materia bloqueada por correlatividad</h3>
+      <p id="modal-body"></p>
+      <button id="modal-close" class="btn">Cerrar</button>
+    </div>
+  </dialog>
 
-listEl.addEventListener('click', e=>{
-  const subjectDiv = e.target.closest('.subject');
-  if(!subjectDiv) return;
-  const id=subjectDiv.dataset.id;
+  <footer class="app-footer">
+    <small>Aplicación optimizada por <a href="https://instagram.com/cosasdelisfd41" target="_blank" rel="noopener noreferrer">@cosasdelisfd41</a></small><br>
+    <small><a href="https://cafecito.app/cosasdel41" target="_blank" rel="noopener noreferrer">bancá con un cafecito</a> para seguir creciendo</small>
+  </footer>
 
-  if(e.target.classList.contains('js-approved')){
-    state[id]=state[id]||{};
-    state[id].approved=e.target.checked;
-    save(); renderList(); updateProgress();
-  }
-});
-
-listEl.addEventListener('change', e=>{
-  if(e.target.classList.contains('js-grade')){
-    const id=e.target.closest('.subject').dataset.id;
-    state[id]=state[id]||{};
-    const v=e.target.value;
-    state[id].grade=v===''?'':Math.max(0,Math.min(10,Number(v)));
-    save(); updateProgress();
-  }
-});
-
-searchEl.addEventListener('input',()=>{query=searchEl.value; currentPage=1; renderList();});
-prevBtn.addEventListener('click',()=>{currentPage=Math.max(1,currentPage-1); renderList();});
-nextBtn.addEventListener('click',()=>{currentPage++; renderList();});
-
-renderList();
-updateProgress();
-</script>
+  <script src="script.js?v=3"></script>
 </body>
 </html>
