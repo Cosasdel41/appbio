@@ -1,5 +1,5 @@
 
-const STATE_KEY = 'quimica_avance';
+const STATE_KEY = 'biologia_avance';
 let materias = [];
 
 async function boot(){
