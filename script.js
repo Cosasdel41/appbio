@@ -175,65 +175,24 @@ function mostrarBloqueo(m, state){
   body.innerHTML=`<strong>Para cursar:</strong> ${m.nombre}<br><strong>Necesitás:</strong>` + (faltan.length?('<ul>'+faltan.map(x=>`<li>${x}</li>`).join('')+'</ul>'):' <em>No pudimos determinar los requisitos.</em>');
   document.getElementById('modal').showModal();
 }
-function calcularPromedio(state){
-  const notas = Object.values(state.aprobadas || [])
-    .map(r => Number(r.nota))
-    .filter(n => !Number.isNaN(n));
-
-  if(notas.length === 0) return null;
-
-  const suma = notas.reduce((a,b) => a + b, 0);
-  return (suma / notas.length).toFixed(2);
-}
-
 
 // Progreso
 function renderProgreso(){
-  const state = loadState();
-  const total = materias.length;
+  const state=loadState(); const total=materias.length;
+  const aprobadasIds=Object.keys(state.aprobadas).map(k=>Number(k)).filter(id=>{ const m=materias.find(x=>x.id===id); return m && isAprobada(m,state); });
+  const aprobadas=aprobadasIds.length; const porcentaje=total>0?Math.round((aprobadas/total)*100):0;
 
-  const aprobadasIds = Object.keys(state.aprobadas).map(k=>Number(k)).filter(id => {
-    const m = materias.find(x=>x.id===id);
-    return m && isAprobada(m, state);
-  });
-
-  const aprobadas = aprobadasIds.length;
-  const porcentaje = total > 0 ? Math.round((aprobadas/total)*100) : 0;
-
-  const topline = document.getElementById('progreso-topline');
+  const topline=document.getElementById('progreso-topline');
   if(topline){
     const curs = Object.keys(state.cursadas||{}).length;
-    topline.textContent = `Aprobadas: ${aprobadas}/${total} (${porcentaje}%) • Cursadas: ${curs}`;
-  }
-
-  const fill = document.getElementById('progress-fill');
-  if(fill){ fill.style.width = porcentaje + '%'; }
-
-  // ===== PROMEDIO =====
-  const promEl = document.getElementById('progreso-promedio');
-  if(promEl){
     const promedio = calcularPromedio(state);
-    promEl.textContent = promedio
-      ? `Promedio general: ${promedio}`
-      : 'Promedio general: —';
+    const promTxt = promedio !== null ? ` • Promedio: ${promedio.toFixed(2)}` : '';
+    topline.textContent =
+      `Aprobadas: ${aprobadas}/${total} (${porcentaje}%) • Cursadas: ${curs}${promTxt}`;
   }
 
-  const nota = document.getElementById('progreso-nota');
-  if(nota){
-    let msg = '';
-    if (porcentaje === 100){
-      msg = 'Felicitaciones, podes anotarte en el 108 A';
-    } else if (porcentaje >= 75){
-      msg = 'Podes anotarte en el listado 108 b Item 4';
-    } else if (porcentaje >= 50){
-      msg = 'Podes anotarte en el listado 108 b Item 5';
-    } else if (porcentaje > 25){
-      msg = 'Podes anotarte en el listado de Emergencia';
-    } else {
-      msg = 'Seguí sumando materias para habilitar listados.';
-    }
-    nota.textContent = msg;
-  }
+  const fill=document.getElementById('progress-fill'); if(fill){ fill.style.width=porcentaje+'%'; }
+  const nota=document.getElementById('progreso-nota'); if(nota){ let msg=''; if(porcentaje===100) msg='Felicitaciones, podes anotarte en el 108 A'; else if(porcentaje>=75) msg='Podes anotarte en el listado 108 b Item 4'; else if(porcentaje>=50) msg='Podes anotarte en el listado 108 b Item 5'; else if(porcentaje>25) msg='Podes anotarte en el listado de Emergencia'; else msg='Seguí sumando materias para habilitar listados.'; nota.textContent=msg; }
 }
 
 // Colapsables
